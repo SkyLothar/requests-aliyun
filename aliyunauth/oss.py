@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import hmac
 import logging
 import time
 
@@ -6,6 +8,7 @@ import requests
 import requests.packages.urllib3
 
 from . import consts
+from . import utils
 
 
 logger = logging.getLogger(__name__)
@@ -38,27 +41,28 @@ class OssAuth(requests.auth.AuthBase):
     REGIONS = {
     }
 
-    def __init__(
-        self,
-        app_key,
-        secret_key,
-        sub_resources=None,
-        override_query=None
-    ):
+    def __init__(self, app_key, secret_key):
         self._app_key = app_key
         self._secret_key = secret_key
 
-        self._sub_resources = sub_resources
-        self._override_query = override_query
-
     def __call__(self, req):
-        # cal md5
         content_md5 = req.headers.get("content-md5", "")
         content_type = req.headers.get("content-type", "")
 
+        params = utils.parse_query(req.url)
+        expire = params.get("Expires")
+        if "Expires" in params:
+            date = params["Expires"]
+            params["OSSAccessKeyId"] = self._app_key
+            params["Signature"] = signature
+        else:
+            date = time.strftime(self.TIME_FMT, time.gmtime())
+            headers["date"] = date
+            headers["authorization"] = "OSS {0}:{1}".format(self._app_key, signature)
+
         # headers
-        canonicalized_header = self.canonicalize_oss_headers(req.headers)
-        canonicalized_res = self.canonicalize_resources(params)
+        canonicalized_header_str = self.canonicalize_oss_headers(req.headers)
+        canonicalized_url = self.canonicalize_url(req.url)
         canonicalized_str = "{0}{1}".format(
             canonicalized_header, canonicalized_res
         )
@@ -69,27 +73,12 @@ class OssAuth(requests.auth.AuthBase):
         signature = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
         b64_signature = base64.b64encode(signature.digest())
 
-        # cal md5
-        # can-str
-        # can-res
-        # expire
-        # str-to-sign
-        # b64encode
-        # set expire
         # res url
-        # send url
+        if path:
+            url = "/{0}".format()
+        if query:
+
         return req
-
-    def sign_url(self, headers, params):
-        sign_date = params["Expires"]
-        params["OSSAccessKeyId"] = self._app_key
-        params["Signature"] = signature
-
-    def sign_header(self, headers, params):
-        headers["date"] = time.strftime(self.TIME_FMT, time.gmtime())
-        req.headers["authorization"] = "OSS {0}:{1}".format(
-            self._app_key, signature
-        )
 
     def canonicalize_oss_headers(self, headers):
         oss_headers = [
@@ -99,14 +88,20 @@ class OssAuth(requests.auth.AuthBase):
         ]
         return "\n".join(oss_headers)
 
-    def canonicalize_resources(self, query):
+    def canonicalize_resources(self, url):
+        """
+        returns new path of url
+        canonicalize resources
+        """
         query_list = []
-        for key, val in query.items():
+        for key, val in params.items():
             if key in self.SUB_RESOURCES:
                 logger.debug("found sub resource: {0}={1}".format(key, val))
                 query_list.append(key if val is None else mk_pair(key, val))
             elif key in self.OVERRIDE_QUERIES:
                 logger.debug("found override_query: {0}={1}".format(key, val))
                 query_list.append(mk_pair(key, val))
-
-        return ''
+            else:
+                logger.info("unrecognized params: {0}={1}".format(key, val))
+        canonicalized_resources = "&".join(query_list)
+        return canonicalized_resources
