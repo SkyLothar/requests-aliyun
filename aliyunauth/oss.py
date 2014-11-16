@@ -2,10 +2,12 @@ import base64
 import hashlib
 import hmac
 import logging
+import mimetypes
 import time
 
 import requests
 import requests.packages.urllib3
+
 
 from . import consts
 from . import utils
@@ -41,37 +43,73 @@ class OssAuth(requests.auth.AuthBase):
     REGIONS = {
     }
 
-    def __init__(self, app_key, secret_key):
+    def __init__(self, app_key, secret_key, allow_empty_md5=False):
         self._app_key = app_key
         self._secret_key = secret_key
+        self._allow_empty_md5 = allow_empty_md5
+
+        self._url = None
+        self._params = None
+        self._content_md5 = None
+        self._content_type = None
+
+    def analysis_request(self, req):
+        parsed_url = purl.URL(req.url)
+
+        # remove all query
+        self._url = parsed_url.query_params({})
+
+        # get params dict including flags
+        self._params = {
+            key: val[0] if val[0] else None
+            for key, val in parsed_url.query_params().items()
+        }
+
+        # cal content-md5
+        content_md5 = req.headers.get("content-md5", "")
+        if not content_md5 and self._allow_empty_md5 is False:
+            content_md5 = utils.cal_md5(req.body)
+
+        # guess content-type
+        content_type, encoding = mimetypes.guess_type(self._url)
+        self._content_type = content_type or "application/octet-stream"
 
     def __call__(self, req):
-        content_md5 = req.headers.get("content-md5", "")
-        content_type = req.headers.get("content-type", "")
+        self.analysis_request(req)
 
-        params = utils.parse_query(req.url)
-        expire = params.get("Expires")
-        if "Expires" in params:
+        expire = self._params.get("Expires")
+
+        if expire is None:
+            date = expire
+        else:
+            date = time.strftime(self.TIME_FMT, time.gmtime())
+
+        # headers
+        canonicalized_header_str = self.canonicalize_oss_headers(req.headers)
+        canonicalized_url = self.canonicalize_url()
+        canonicalized_str = canonicalized_header + canonicalized_url
+
+        # sign
+        str_to_sign = "\n".join([
+            req.method,
+            self._content_md5,
+            self._content_type,
+            date,
+            canonicalized_url
+        ])
+        signature = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
+        b64_signature = base64.b64encode(signature.digest())
+
+        if expire:
+            # change url
             date = params["Expires"]
             params["OSSAccessKeyId"] = self._app_key
             params["Signature"] = signature
         else:
-            date = time.strftime(self.TIME_FMT, time.gmtime())
-            headers["date"] = date
-            headers["authorization"] = "OSS {0}:{1}".format(self._app_key, signature)
-
-        # headers
-        canonicalized_header_str = self.canonicalize_oss_headers(req.headers)
-        canonicalized_url = self.canonicalize_url(req.url)
-        canonicalized_str = "{0}{1}".format(
-            canonicalized_header, canonicalized_res
-        )
-
-        str_to_sign = "\n".join([
-            req.method, content_md5, content_type, date, canonicalized_str
-        ])
-        signature = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
-        b64_signature = base64.b64encode(signature.digest())
+            self._headers["date"] = date
+            self._headers["authorization"] = "OSS {0}:{1}".format(
+                self._app_key, signature
+            )
 
         # res url
         if path:
@@ -88,7 +126,7 @@ class OssAuth(requests.auth.AuthBase):
         ]
         return "\n".join(oss_headers)
 
-    def canonicalize_resources(self, url):
+    def canonicalize_url(self, path, params):
         """
         returns new path of url
         canonicalize resources
@@ -103,5 +141,6 @@ class OssAuth(requests.auth.AuthBase):
                 query_list.append(mk_pair(key, val))
             else:
                 logger.info("unrecognized params: {0}={1}".format(key, val))
-        canonicalized_resources = "&".join(query_list)
-        return canonicalized_resources
+
+        canonicalized_url = self._url.query("&".join(sorted(query_list)))
+        return canonicalized_url
