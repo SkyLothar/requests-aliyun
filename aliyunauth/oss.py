@@ -6,7 +6,7 @@ import mimetypes
 import time
 
 import requests
-import requests.packages.urllib3
+import purl
 
 
 from . import consts
@@ -49,6 +49,7 @@ class OssAuth(requests.auth.AuthBase):
         self._allow_empty_md5 = allow_empty_md5
 
         self._url = None
+        self._path = None
         self._params = None
         self._content_md5 = None
         self._content_type = None
@@ -84,37 +85,38 @@ class OssAuth(requests.auth.AuthBase):
         else:
             date = time.strftime(self.TIME_FMT, time.gmtime())
 
-        # headers
+        # canonicalize resources
         canonicalized_header_str = self.canonicalize_oss_headers(req.headers)
-        canonicalized_url = self.canonicalize_url()
-        canonicalized_str = canonicalized_header + canonicalized_url
+        req.url = canonicalized_uri = self.canonicalize_uri(
+            self._url.path(),
+            self._params
+        )
+        canonicalized_str = canonicalized_header_str + canonicalized_uri
 
-        # sign
+        # sign this request
         str_to_sign = "\n".join([
             req.method,
             self._content_md5,
             self._content_type,
             date,
-            canonicalized_url
+            canonicalized_str
         ])
         signature = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
         b64_signature = base64.b64encode(signature.digest())
 
         if expire:
-            # change url
+            # expire can only be signed with url
+            req.url = "?".format(canonicalize_uri)
+
             date = params["Expires"]
             params["OSSAccessKeyId"] = self._app_key
             params["Signature"] = signature
         else:
+            # normaly we sign with header
             self._headers["date"] = date
             self._headers["authorization"] = "OSS {0}:{1}".format(
                 self._app_key, signature
             )
-
-        # res url
-        if path:
-            url = "/{0}".format()
-        if query:
 
         return req
 
@@ -126,7 +128,7 @@ class OssAuth(requests.auth.AuthBase):
         ]
         return "\n".join(oss_headers)
 
-    def canonicalize_url(self, path, params):
+    def canonicalize_uri(self,  path, params):
         """
         returns new path of url
         canonicalize resources
@@ -142,5 +144,5 @@ class OssAuth(requests.auth.AuthBase):
             else:
                 logger.info("unrecognized params: {0}={1}".format(key, val))
 
-        canonicalized_url = self._url.query("&".join(sorted(query_list)))
-        return canonicalized_url
+        uri = "{0}?{1}".format(path, "&".join(sorted(query_list)))
+        return uri
