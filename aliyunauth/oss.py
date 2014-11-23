@@ -6,10 +6,10 @@ import mimetypes
 import time
 
 import requests
-import purl
 
 
 from . import consts
+from . import url
 from . import utils
 
 
@@ -40,9 +40,6 @@ class OssAuth(requests.auth.AuthBase):
         "response-content-encoding"
     )
 
-    REGIONS = {
-    }
-
     def __init__(self, app_key, secret_key, allow_empty_md5=False):
         self._app_key = app_key
         self._secret_key = secret_key
@@ -55,7 +52,7 @@ class OssAuth(requests.auth.AuthBase):
         self._content_type = None
 
     def analysis_request(self, req):
-        parsed_url = purl.URL(req.url)
+        parsed_url = url.URL(req.url)
 
         # remove all query
         self._url = parsed_url.query_params({})

@@ -1,6 +1,9 @@
 import requests
 
 
+__all__ = ["URL"]
+
+
 if requests.compat.is_py2:
     from urlparse import parse_qs
 elif requests.compat.is_py3:
@@ -10,6 +13,8 @@ elif requests.compat.is_py3:
 def to_bytes(some_str, encoding="utf8"):
     if isinstance(some_str, requests.compat.str):
         some_bytes = some_str.encode(encoding)
+    else:
+        some_bytes = some_str
     return some_bytes
 
 
@@ -65,18 +70,26 @@ class URL(object):
             params=params,
             fragment=parsed_url.fragment
         )
+        self._url = None
 
-    def forge(self):
+    def forge(self, **kwargs):
+        if kwargs:
+            self._info["params"].sort(**kwargs)
+
         parts = [
-            self.scheme,
+            "{0}://".format(self.scheme),
             self.netloc,
             self.path,
-            "?".format() if self.query else ""
+            "?{0}".format(self.query) if self.query else "",
             "#".format(self.fragment) if self.fragment else "",
         ]
-        return "".join(parts)
+        self._url = to_str("".join(parts))
+        return self._url
 
-    __str__ = __unicode__ = forge
+    def __str__(self):
+        if self._url is None:
+            self.forge()
+        return self._url
 
     @property
     def scheme(self):
@@ -145,7 +158,8 @@ class URL(object):
         return "&".join(query)
 
     def append_params(self, new_params):
-        self._info["params"].update(new_params)
+        params = dict(self.params, **dict(new_params))
+        self.params = params
         return self.params
 
     @property
