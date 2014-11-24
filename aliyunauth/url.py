@@ -79,9 +79,7 @@ class URL(object):
         parts = [
             "{0}://".format(self.scheme),
             self.netloc,
-            self.path,
-            "?{0}".format(self.query) if self.query else "",
-            "#".format(self.fragment) if self.fragment else "",
+            self.uri
         ]
         self._url = to_str("".join(parts))
         return self._url
@@ -156,6 +154,16 @@ class URL(object):
                 param = {to_bytes(key): to_bytes(val)}
                 query.append(requests.compat.urlencode(param))
         return "&".join(query)
+
+    @property
+    def uri(self):
+        query = self.query
+        fragment = self.fragment
+        return "".join([
+            self.path,
+            "?{0}".format(query) if query else "",
+            "#{0}".format(fragment) if fragment else ""
+        ])
 
     def append_params(self, new_params):
         params = dict(self.params, **dict(new_params))

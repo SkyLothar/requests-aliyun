@@ -24,5 +24,5 @@ def cal_md5(data):
             data_piece = data.read(consts.MD5_CHUNK_SIZE)
         data.seek(0, os.SEEK_SET)
     else:
-        md5sum.update(data)
+        md5sum.update(data or "")
     return md5sum.hexdigest()

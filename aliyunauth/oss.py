@@ -3,12 +3,12 @@ import hashlib
 import hmac
 import logging
 import mimetypes
+import os
 import time
 
 import requests
 
 
-from . import consts
 from . import url
 from . import utils
 
@@ -16,12 +16,9 @@ from . import utils
 logger = logging.getLogger(__name__)
 
 
-def mk_pair(key, val):
-    return '{0}={1}'.format(key, val)
-
-
 class OssAuth(requests.auth.AuthBase):
     """Attach Aliyun OSS Authentication to the given request"""
+    X_OSS_PREFIX = "x-oss-"
     TIME_FMT = "%a, %d %b %Y %H:%M:%S GMT"
     SUB_RESOURCES = (
         "acl",
@@ -40,106 +37,106 @@ class OssAuth(requests.auth.AuthBase):
         "response-content-encoding"
     )
 
-    def __init__(self, app_key, secret_key, allow_empty_md5=False):
+    def __init__(self, bucket, app_key, secret_key, allow_empty_md5=False):
+        self._bucket = bucket
         self._app_key = app_key
         self._secret_key = secret_key
         self._allow_empty_md5 = allow_empty_md5
 
-        self._url = None
-        self._path = None
-        self._params = None
-        self._content_md5 = None
-        self._content_type = None
+        self._sign_with_url = None
 
-    def analysis_request(self, req):
-        parsed_url = url.URL(req.url)
+    def set_more_headers(self, req, **extra_headers):
+        oss_url = url.URL(req.url)
+        req.headers.update(extra_headers)
 
-        # remove all query
-        self._url = parsed_url.query_params({})
-
-        # get params dict including flags
-        self._params = {
-            key: val[0] if val[0] else None
-            for key, val in parsed_url.query_params().items()
-        }
-
-        # cal content-md5
-        content_md5 = req.headers.get("content-md5", "")
-        if not content_md5 and self._allow_empty_md5 is False:
-            content_md5 = utils.cal_md5(req.body)
-
-        # guess content-type
-        content_type, encoding = mimetypes.guess_type(self._url)
-        self._content_type = content_type or "application/octet-stream"
-
-    def __call__(self, req):
-        self.analysis_request(req)
-
-        expire = self._params.get("Expires")
-
-        if expire is None:
-            date = expire
+        # set content-type
+        if req.headers.get("content-type"):
+            logger.info()
         else:
-            date = time.strftime(self.TIME_FMT, time.gmtime())
+            content_type, __ = mimetypes.guess_type(oss_url.path)
+            req.headers["content-type"] = content_type
 
-        # canonicalize resources
-        canonicalized_header_str = self.canonicalize_oss_headers(req.headers)
-        req.url = canonicalized_uri = self.canonicalize_uri(
-            self._url.path(),
-            self._params
-        )
-        canonicalized_str = canonicalized_header_str + canonicalized_uri
+        # set date
+        if "date" not in req.headers:
+            timestamp = time.gmtime()
+            date = time.strftime(self.TIME_FMT, timestamp)
+            req.headers["date"] = date
+            logger.debug("date is [{0}|{1}]".format(timestamp, date))
 
-        # sign this request
-        str_to_sign = "\n".join([
-            req.method,
-            self._content_md5,
-            self._content_type,
-            date,
-            canonicalized_str
-        ])
-        signature = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
-        b64_signature = base64.b64encode(signature.digest())
-
-        if expire:
-            # expire can only be signed with url
-            req.url = "?".format(canonicalize_uri)
-
-            date = params["Expires"]
-            params["OSSAccessKeyId"] = self._app_key
-            params["Signature"] = signature
+        # set content-md5
+        if req.body is not None:
+            content_md5 = req.headers.get("content-md5")
+            if content_md5 is None and self._allow_empty_md5 is False:
+                content_md5 = utils.cal_md5(req.body)
         else:
-            # normaly we sign with header
-            self._headers["date"] = date
-            self._headers["authorization"] = "OSS {0}:{1}".format(
-                self._app_key, signature
-            )
+            content_md5 = ""
+
+        req.headers["content-md5"] = content_md5
 
         return req
 
-    def canonicalize_oss_headers(self, headers):
+    def get_signature(self, req):
+        oss_url = url.URL(req.url)
+
         oss_headers = [
             "{0}:{1}".format(key, val)
-            for key, val in sorted(headers.lower_items(), key=lambda k: k[0])
-            if key.startswith(consts.X_OSS_PREFIX)
+            for key, val in req.headers.lower_items()
+            if key.startswith(self.X_OSS_PREFIX)
         ]
-        return "\n".join(oss_headers)
+        canonicalized_headers = "\n".join(sorted(oss_headers))
+        logger.debug(
+            "canonicalized header : [{0}]".format(canonicalized_headers)
+        )
 
-    def canonicalize_uri(self,  path, params):
-        """
-        returns new path of url
-        canonicalize resources
-        """
-        query_list = []
-        for key, val in params.items():
-            if key in self.SUB_RESOURCES:
-                logger.debug("found sub resource: {0}={1}".format(key, val))
-                query_list.append(key if val is None else mk_pair(key, val))
-            elif key in self.OVERRIDE_QUERIES:
-                logger.debug("found override_query: {0}={1}".format(key, val))
-                query_list.append(mk_pair(key, val))
-            else:
-                logger.info("unrecognized params: {0}={1}".format(key, val))
+        oss_url.params = {
+            key: val
+            for key, val in oss_url.params.items()
+            if key in self.SUB_RESOURCES or key in self.OVERRIDE_QUERIES
+        }
 
-        uri = "{0}?{1}".format(path, "&".join(sorted(query_list)))
-        return uri
+        oss_url.forge(key=lambda x: x[0])
+        canonicalized_str = "{0}/{1}".format(
+            canonicalized_headers, os.path.join(self._bucket + oss_url.uri)
+        )
+
+        str_to_sign = "\n".join([
+            req.method,
+            req.headers["content-md5"],
+            req.headers["content-type"],
+            req.headers["date"],
+            canonicalized_str
+        ])
+        logger.debug(
+            "signature str is \n{0}\n{1}\n{0}\n".format("#" * 20, str_to_sign)
+        )
+
+        signature_bin = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
+        signature = base64.b64encode(signature_bin.digest())
+        logger.debug("signature is [{0}]".format(signature))
+        return signature
+
+    def __call__(self, req):
+        req = self.set_more_headers(req)
+        signature = self.get_signature(req)
+
+        req.headers["authorization"] = "OSS {0}:{1}".format(
+            self._app_key, signature
+        )
+        return req
+
+    def sign_with_url(self, req, expires=None):
+        # set expires
+        req.headers["date"] = expires
+
+        req = self.set_more_headers(req)
+        signature = self.get_signature(req)
+
+        oss_url = req.URL(req.url)
+        oss_url.append_params(dict(
+            Expire=expires,
+            OSSAccessKeyId=self._app_key,
+            Signature=signature
+        ))
+
+        url = oss_url.forge(key=lambda x: x[0])
+        return url

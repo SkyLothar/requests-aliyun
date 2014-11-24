@@ -26,6 +26,8 @@ class TestURL(object):
             aliyunauth.url.parse_qs(url.query, True),
             dict(q0=["foo"], q1=["bar"], flag=[""])
         )
+        url.forge(key=lambda x: x[0])
+        nose.tools.eq_(url.uri, "/path0/path1/path2?flag&q0=foo&q1=bar#frag")
 
     def test_forge(self):
         url = aliyunauth.url.URL("http://example.com")

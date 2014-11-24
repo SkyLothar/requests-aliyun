@@ -1,3 +1,1 @@
-X_OSS_PREFIX = 'x-oss-'
-
 MD5_CHUNK_SIZE = 1024 * 1024  # 1M
