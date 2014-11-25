@@ -8,7 +8,6 @@ import time
 
 import requests
 
-
 from . import url
 from . import utils
 
@@ -17,7 +16,7 @@ logger = logging.getLogger(__name__)
 
 
 class OssAuth(requests.auth.AuthBase):
-    """Attach Aliyun OSS Authentication to the given request"""
+    """Attach Aliyun Oss Authentication to the given request"""
     X_OSS_PREFIX = "x-oss-"
     TIME_FMT = "%a, %d %b %Y %H:%M:%S GMT"
     SUB_RESOURCES = (
@@ -37,31 +36,32 @@ class OssAuth(requests.auth.AuthBase):
         "response-content-encoding"
     )
 
-    def __init__(self, bucket, app_key, secret_key, allow_empty_md5=False):
+    def __init__(self, bucket, access_key, secret_key, allow_empty_md5=False):
         self._bucket = bucket
-        self._app_key = app_key
+        self._access_key = access_key
         self._secret_key = secret_key
         self._allow_empty_md5 = allow_empty_md5
 
         self._sign_with_url = None
 
-    def set_more_headers(self, req, **extra_headers):
+    def set_more_headers(self, req, extra_headers=None):
         oss_url = url.URL(req.url)
-        req.headers.update(extra_headers)
+        req.headers.update(extra_headers or {})
 
         # set content-type
-        if req.headers.get("content-type"):
-            logger.info()
-        else:
+        conent_type = req.headers.get("content-type")
+        if content_type is None:
             content_type, __ = mimetypes.guess_type(oss_url.path)
-            req.headers["content-type"] = content_type
+        req.headers["content-type"] = content_type
+        logger.info("set content-type to: {0}".format(content_type))
 
         # set date
-        if "date" not in req.headers:
+        date = req.headers.get("date")
+        if date is None:
             timestamp = time.gmtime()
             date = time.strftime(self.TIME_FMT, timestamp)
-            req.headers["date"] = date
-            logger.debug("date is [{0}|{1}]".format(timestamp, date))
+        req.headers["date"] = date
+        logger.info("set date to: {0}".format(date))
 
         # set content-md5
         if req.body is not None:
@@ -70,8 +70,8 @@ class OssAuth(requests.auth.AuthBase):
                 content_md5 = utils.cal_md5(req.body)
         else:
             content_md5 = ""
-
         req.headers["content-md5"] = content_md5
+        logger.info("content-md5 to: [{0}]".format(content_md5))
 
         return req
 
@@ -120,7 +120,7 @@ class OssAuth(requests.auth.AuthBase):
         signature = self.get_signature(req)
 
         req.headers["authorization"] = "OSS {0}:{1}".format(
-            self._app_key, signature
+            self._access_key, signature
         )
         return req
 
@@ -134,7 +134,7 @@ class OssAuth(requests.auth.AuthBase):
         oss_url = req.URL(req.url)
         oss_url.append_params(dict(
             Expire=expires,
-            OSSAccessKeyId=self._app_key,
+            OSSAccessKeyId=self._access_key,
             Signature=signature
         ))
 
