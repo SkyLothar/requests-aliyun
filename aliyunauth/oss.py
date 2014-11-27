@@ -49,7 +49,7 @@ class OssAuth(requests.auth.AuthBase):
         req.headers.update(extra_headers or {})
 
         # set content-type
-        conent_type = req.headers.get("content-type")
+        content_type = req.headers.get("content-type")
         if content_type is None:
             content_type, __ = mimetypes.guess_type(oss_url.path)
         req.headers["content-type"] = content_type
@@ -65,8 +65,8 @@ class OssAuth(requests.auth.AuthBase):
 
         # set content-md5
         if req.body is not None:
-            content_md5 = req.headers.get("content-md5")
-            if content_md5 is None and self._allow_empty_md5 is False:
+            content_md5 = req.headers.get("content-md5", "")
+            if not content_md5 and self._allow_empty_md5 is False:
                 content_md5 = utils.cal_md5(req.body)
         else:
             content_md5 = ""
