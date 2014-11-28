@@ -1,13 +1,19 @@
+import hashlib
+
 import mock
 import nose
 
 import aliyunauth
 
 
+TEST_BODY = b"some-data"
+TEST_BODY_MD5 = hashlib.md5(TEST_BODY).hexdigest()
+
+
 def test_headers_no_md5():
     req = mock.MagicMock()
     req.url = "http://example.com/"
-    req.body = "some-data"
+    req.body = TEST_BODY
     req.headers = {}
 
     auth = aliyunauth.OssAuth("access-key", "secret-key", "bucket", True)
@@ -22,7 +28,7 @@ def test_headers_no_md5():
 @mock.patch("time.strftime")
 def test_header_with_md5(mock_time):
     req = mock.MagicMock()
-    req.url = "http://example.com/"
+    req.url = "http://example.com/test.sh"
     req.body = "some-data"
     req.headers = {}
     mock_time.return_value = "mock-date"
@@ -34,6 +40,6 @@ def test_header_with_md5(mock_time):
         {
             "date": "mock-date",
             "content-type": "application/x-sh",
-            "content-md5": ""
+            "content-md5": "31568d94c1ff0505d173ca6b5cc3cf49"
         }
     )

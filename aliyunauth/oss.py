@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 class OssAuth(requests.auth.AuthBase):
     """Attach Aliyun Oss Authentication to the given request"""
     X_OSS_PREFIX = "x-oss-"
+    DEFAULT_TYPE = "application/octstream"
     TIME_FMT = "%a, %d %b %Y %H:%M:%S GMT"
     SUB_RESOURCES = (
         "acl",
@@ -36,7 +37,13 @@ class OssAuth(requests.auth.AuthBase):
         "response-content-encoding"
     )
 
-    def __init__(self, bucket, access_key, secret_key, allow_empty_md5=False):
+    def __init__(
+        self,
+        bucket,
+        access_key, secret_key,
+        expires=None, expires_in=None,
+        allow_empty_md5=False
+    ):
         self._bucket = bucket
         self._access_key = access_key
         self._secret_key = secret_key
@@ -52,7 +59,7 @@ class OssAuth(requests.auth.AuthBase):
         content_type = req.headers.get("content-type")
         if content_type is None:
             content_type, __ = mimetypes.guess_type(oss_url.path)
-        req.headers["content-type"] = content_type
+        req.headers["content-type"] = content_type or self.DEFAULT_TYPE
         logger.info("set content-type to: {0}".format(content_type))
 
         # set date

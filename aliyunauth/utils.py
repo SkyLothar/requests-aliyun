@@ -15,6 +15,8 @@ def cal_md5(data):
         5eb63bbbe01eeed093cb22bb8f5acdc3
 
     """
+    if data is None:
+        return None
     md5sum = hashlib.md5()
     if hasattr(data, "read") and hasattr(data, "seek"):
         # file-like object or IO-like object
@@ -24,5 +26,5 @@ def cal_md5(data):
             data_piece = data.read(consts.MD5_CHUNK_SIZE)
         data.seek(0, os.SEEK_SET)
     else:
-        md5sum.update(data or "")
+        md5sum.update(data)
     return md5sum.hexdigest()
