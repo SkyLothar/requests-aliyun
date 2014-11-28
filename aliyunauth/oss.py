@@ -49,7 +49,10 @@ class OssAuth(requests.auth.AuthBase):
         self._secret_key = secret_key
         self._allow_empty_md5 = allow_empty_md5
 
-        self._sign_with_url = None
+        if isinstance(expires, basestring):
+            self._expires = expires
+        elif isinstance(expires_in, (int, float)):
+            self._expires = date = time.strftime(self.TIME_FMT, timestamp)
 
     def set_more_headers(self, req, extra_headers=None):
         oss_url = url.URL(req.url)
@@ -63,10 +66,9 @@ class OssAuth(requests.auth.AuthBase):
         logger.info("set content-type to: {0}".format(content_type))
 
         # set date
-        date = req.headers.get("date")
+        date = req.headers.get("date", self._expires)
         if date is None:
-            timestamp = time.gmtime()
-            date = time.strftime(self.TIME_FMT, timestamp)
+            date = time.strftime(self.TIME_FMT, time.gmtime())
         req.headers["date"] = date
         logger.info("set date to: {0}".format(date))
 
