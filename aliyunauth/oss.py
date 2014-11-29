@@ -1,3 +1,5 @@
+# -*- coding:utf8 -*-
+
 import base64
 import hashlib
 import hmac
@@ -46,13 +48,19 @@ class OssAuth(requests.auth.AuthBase):
     ):
         self._bucket = bucket
         self._access_key = access_key
+
+        if isinstance(secret_key, requests.compat.str):
+            secret_key = secret_key.encode("utf8")
+
         self._secret_key = secret_key
         self._allow_empty_md5 = allow_empty_md5
 
-        if isinstance(expires, basestring):
-            self._expires = expires
+        if isinstance(expires, (int, float)):
+            self._expires = str(int(expires))
         elif isinstance(expires_in, (int, float)):
-            self._expires = date = time.strftime(self.TIME_FMT, timestamp)
+            self._expires = str(int(time.time() + expires_in))
+        else:
+            self._expires = None
 
     def set_more_headers(self, req, extra_headers=None):
         oss_url = url.URL(req.url)
@@ -66,11 +74,15 @@ class OssAuth(requests.auth.AuthBase):
         logger.info("set content-type to: {0}".format(content_type))
 
         # set date
-        date = req.headers.get("date", self._expires)
-        if date is None:
-            date = time.strftime(self.TIME_FMT, time.gmtime())
-        req.headers["date"] = date
-        logger.info("set date to: {0}".format(date))
+        if self._expires is None:
+            req.headers.setdefault(
+                "date",
+                time.strftime(self.TIME_FMT, time.gmtime())
+            )
+        else:
+            req.headers["date"] = self._expires
+
+        logger.info("set date to: {0}".format(req.headers["date"]))
 
         # set content-md5
         if req.body is not None:
@@ -118,9 +130,11 @@ class OssAuth(requests.auth.AuthBase):
         logger.debug(
             "signature str is \n{0}\n{1}\n{0}\n".format("#" * 20, str_to_sign)
         )
+        if isinstance(str_to_sign, requests.compat.str):
+            str_to_sign = str_to_sign.encode("utf8")
 
         signature_bin = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
-        signature = base64.b64encode(signature_bin.digest())
+        signature = base64.b64encode(signature_bin.digest()).decode("utf8")
         logger.debug("signature is [{0}]".format(signature))
         return signature
 
@@ -128,24 +142,18 @@ class OssAuth(requests.auth.AuthBase):
         req = self.set_more_headers(req)
         signature = self.get_signature(req)
 
-        req.headers["authorization"] = "OSS {0}:{1}".format(
-            self._access_key, signature
-        )
+        if self._expires is None:
+            # auth with headers
+            req.headers["authorization"] = "OSS {0}:{1}".format(
+                self._access_key, signature
+            )
+        else:
+            # auth with url
+            oss_url = url.URL(req.url)
+            oss_url.append_params(dict(
+                Expire=self._expires,
+                OSSAccessKeyId=self._access_key,
+                Signature=signature
+            ))
+            req.url = oss_url.forge(key=lambda x: x[0])
         return req
-
-    def sign_with_url(self, req, expires=None):
-        # set expires
-        req.headers["date"] = expires
-
-        req = self.set_more_headers(req)
-        signature = self.get_signature(req)
-
-        oss_url = req.URL(req.url)
-        oss_url.append_params(dict(
-            Expire=expires,
-            OSSAccessKeyId=self._access_key,
-            Signature=signature
-        ))
-
-        url = oss_url.forge(key=lambda x: x[0])
-        return url

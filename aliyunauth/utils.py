@@ -1,5 +1,9 @@
+# -*- coding:utf8 -*-
+
 import hashlib
 import os
+
+import requests
 
 from . import consts
 
@@ -22,9 +26,13 @@ def cal_md5(data):
         # file-like object or IO-like object
         data_piece = data.read(consts.MD5_CHUNK_SIZE)
         while data_piece:
+            if isinstance(data_piece, requests.compat.str):
+                data_piece = data_piece.encode("utf8")
             md5sum.update(data_piece)
             data_piece = data.read(consts.MD5_CHUNK_SIZE)
         data.seek(0, os.SEEK_SET)
     else:
+        if isinstance(data, requests.compat.str):
+            data = data.encode("utf8")
         md5sum.update(data)
     return md5sum.hexdigest()
