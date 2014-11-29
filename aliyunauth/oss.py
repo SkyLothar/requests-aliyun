@@ -1,3 +1,5 @@
+# -*- coding:utf8 -*-
+
 import base64
 import hashlib
 import hmac
@@ -8,7 +10,6 @@ import time
 
 import requests
 
-
 from . import url
 from . import utils
 
@@ -17,8 +18,9 @@ logger = logging.getLogger(__name__)
 
 
 class OssAuth(requests.auth.AuthBase):
-    """Attach Aliyun OSS Authentication to the given request"""
+    """Attach Aliyun Oss Authentication to the given request"""
     X_OSS_PREFIX = "x-oss-"
+    DEFAULT_TYPE = "application/octstream"
     TIME_FMT = "%a, %d %b %Y %H:%M:%S GMT"
     SUB_RESOURCES = (
         "acl",
@@ -37,41 +39,60 @@ class OssAuth(requests.auth.AuthBase):
         "response-content-encoding"
     )
 
-    def __init__(self, bucket, app_key, secret_key, allow_empty_md5=False):
+    def __init__(
+        self,
+        bucket,
+        access_key, secret_key,
+        expires=None, expires_in=None,
+        allow_empty_md5=False
+    ):
         self._bucket = bucket
-        self._app_key = app_key
+        self._access_key = access_key
+
+        if isinstance(secret_key, requests.compat.str):
+            secret_key = secret_key.encode("utf8")
+
         self._secret_key = secret_key
         self._allow_empty_md5 = allow_empty_md5
 
-        self._sign_with_url = None
+        if isinstance(expires, (int, float)):
+            self._expires = str(int(expires))
+        elif isinstance(expires_in, (int, float)):
+            self._expires = str(int(time.time() + expires_in))
+        else:
+            self._expires = None
 
-    def set_more_headers(self, req, **extra_headers):
+    def set_more_headers(self, req, extra_headers=None):
         oss_url = url.URL(req.url)
-        req.headers.update(extra_headers)
+        req.headers.update(extra_headers or {})
 
         # set content-type
-        if req.headers.get("content-type"):
-            logger.info()
-        else:
+        content_type = req.headers.get("content-type")
+        if content_type is None:
             content_type, __ = mimetypes.guess_type(oss_url.path)
-            req.headers["content-type"] = content_type
+        req.headers["content-type"] = content_type or self.DEFAULT_TYPE
+        logger.info("set content-type to: {0}".format(content_type))
 
         # set date
-        if "date" not in req.headers:
-            timestamp = time.gmtime()
-            date = time.strftime(self.TIME_FMT, timestamp)
-            req.headers["date"] = date
-            logger.debug("date is [{0}|{1}]".format(timestamp, date))
+        if self._expires is None:
+            req.headers.setdefault(
+                "date",
+                time.strftime(self.TIME_FMT, time.gmtime())
+            )
+        else:
+            req.headers["date"] = self._expires
+
+        logger.info("set date to: {0}".format(req.headers["date"]))
 
         # set content-md5
         if req.body is not None:
-            content_md5 = req.headers.get("content-md5")
-            if content_md5 is None and self._allow_empty_md5 is False:
+            content_md5 = req.headers.get("content-md5", "")
+            if not content_md5 and self._allow_empty_md5 is False:
                 content_md5 = utils.cal_md5(req.body)
         else:
             content_md5 = ""
-
         req.headers["content-md5"] = content_md5
+        logger.info("content-md5 to: [{0}]".format(content_md5))
 
         return req
 
@@ -109,9 +130,11 @@ class OssAuth(requests.auth.AuthBase):
         logger.debug(
             "signature str is \n{0}\n{1}\n{0}\n".format("#" * 20, str_to_sign)
         )
+        if isinstance(str_to_sign, requests.compat.str):
+            str_to_sign = str_to_sign.encode("utf8")
 
         signature_bin = hmac.new(self._secret_key, str_to_sign, hashlib.sha1)
-        signature = base64.b64encode(signature_bin.digest())
+        signature = base64.b64encode(signature_bin.digest()).decode("utf8")
         logger.debug("signature is [{0}]".format(signature))
         return signature
 
@@ -119,24 +142,18 @@ class OssAuth(requests.auth.AuthBase):
         req = self.set_more_headers(req)
         signature = self.get_signature(req)
 
-        req.headers["authorization"] = "OSS {0}:{1}".format(
-            self._app_key, signature
-        )
+        if self._expires is None:
+            # auth with headers
+            req.headers["authorization"] = "OSS {0}:{1}".format(
+                self._access_key, signature
+            )
+        else:
+            # auth with url
+            oss_url = url.URL(req.url)
+            oss_url.append_params(dict(
+                Expire=self._expires,
+                OSSAccessKeyId=self._access_key,
+                Signature=signature
+            ))
+            req.url = oss_url.forge(key=lambda x: x[0])
         return req
-
-    def sign_with_url(self, req, expires=None):
-        # set expires
-        req.headers["date"] = expires
-
-        req = self.set_more_headers(req)
-        signature = self.get_signature(req)
-
-        oss_url = req.URL(req.url)
-        oss_url.append_params(dict(
-            Expire=expires,
-            OSSAccessKeyId=self._app_key,
-            Signature=signature
-        ))
-
-        url = oss_url.forge(key=lambda x: x[0])
-        return url

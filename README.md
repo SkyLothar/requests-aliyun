@@ -4,11 +4,11 @@ Aliyun using python-requests
 [![Coverage Status][coverage-image]][coverage-url]
 [![Requirements Status][req-status-image]][req-status-url]
 
-Aliyun authentication for Aliyun for the awesome requests!
+Aliyun authentication for the awesome requests!
 
-- [] OSS (wip)
-- [] RDS (2014-12)
-- [] ECS (2014-12)
+- [x] OSS (wip)
+- [ ] RDS (2014-12)
+- [ ] ECS (2014-12)
 
 [travis-url]: https://travis-ci.org/SkyLothar/requests-aliyun
 [travis-image]: https://travis-ci.org/SkyLothar/requests-aliyun.svg?branch=master
