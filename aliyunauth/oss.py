@@ -1,5 +1,12 @@
 # -*- coding:utf8 -*-
 
+"""
+aliyunauth.oss
+~~~~~~~~~~~~~~
+
+This module contains the authentication handlers for Ali OSS Service
+"""
+
 import base64
 import hashlib
 import hmac
@@ -18,7 +25,28 @@ logger = logging.getLogger(__name__)
 
 
 class OssAuth(requests.auth.AuthBase):
-    """Attach Aliyun Oss Authentication to the given request"""
+    """Attach Aliyun Oss Authentication to the given request
+
+    :param bucket: the bucket name of this request
+    :param access_key: the access_key of your oss account
+    :param secret_key: the secret_key of your oss account
+    :param expires: (optional) the request will expire after the given epoch
+    :param expires_in: (optional) the request will expires in x `seconds`,
+        this option will cause the *url sign method*
+    :param allow_empty_md5: (optional) don't calculate md5. Default is `False`,
+        calculate md5 when content-md5 not appears in the headers
+
+    Usage::
+
+        >>> import requests
+        >>> from aliyunauth import OssAuth
+        >>> req = request.get(
+        ...     "http://bucket-name.oss-url.com/path/to/file",
+        ...     auth=OssAuth("bucket-name", "access-key", "secret-key")
+        ... )
+        <Response [200]>
+
+    """
     X_OSS_PREFIX = "x-oss-"
     DEFAULT_TYPE = "application/octstream"
     TIME_FMT = "%a, %d %b %Y %H:%M:%S GMT"
@@ -63,6 +91,12 @@ class OssAuth(requests.auth.AuthBase):
             self._expires = None
 
     def set_more_headers(self, req, extra_headers=None):
+        """Set content-type, content-md5, date to the request
+        Returns a new `PreparedRequest`
+
+        :param req: the origin unsigned request
+        :param extra_headers: extra headers you want to set, pass as dict
+        """
         oss_url = url.URL(req.url)
         req.headers.update(extra_headers or {})
 
@@ -97,6 +131,9 @@ class OssAuth(requests.auth.AuthBase):
         return req
 
     def get_signature(self, req):
+        """calculate the signature of the oss request
+        Returns the signatue
+        """
         oss_url = url.URL(req.url)
 
         oss_headers = [
@@ -139,6 +176,7 @@ class OssAuth(requests.auth.AuthBase):
         return signature
 
     def __call__(self, req):
+        """sign the request"""
         req = self.set_more_headers(req)
         signature = self.get_signature(req)
 
