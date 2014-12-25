@@ -7,12 +7,16 @@ Aliyun using python-requests
 .. image:: https://coveralls.io/repos/SkyLothar/requests-aliyun/badge.png
     :target: https://coveralls.io/r/SkyLothar/requests-aliyun
 
-.. image:: https://requires.io/github/SkyLothar/requests-aliyun/requirements/?branch=master
-    :target:  https://requires.io/github/SkyLothar/requests-aliyun/requirements.svg?branch=master
+.. image:: https://requires.io/github/SkyLothar/requests-aliyun/requirements.svg?branch=master
+    :target: https://requires.io/github/SkyLothar/requests-aliyun/requirements/?branch=master
 
 .. image:: https://pypip.in/py_versions/requests-aliyun/badge.svg
+    :target: https://pypi.python.org/pypi/requests-aliyun/
+    :alt: Supported Python versions
 
 .. image:: https://pypip.in/license/requests-aliyun/badge.svg
+    :target: https://pypi.python.org/pypi/requests-aliyun/
+    :alt: License
 
 Aliyun authentication for the awesome requests!
 -----------------------------------------------
