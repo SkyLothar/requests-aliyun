@@ -34,14 +34,14 @@ with open("tests/requirements.txt", "r", "utf-8") as f:
 setuptools.setup(
     name="requests-aliyun",
     version=aliyunauth.__version__,
-    description="",
+    description="authentication for aliyun service",
     long_description=readme,
     author=aliyunauth.__author__,
     author_email=aliyunauth.__email__,
     url=aliyunauth.__url__,
     packages=packages,
     package_data={
-        "": ["LICENSE", "NOTICE"]
+        "": ["LICENSE"]
     },
     package_dir={
         "aliyunauth": "aliyunauth"
@@ -51,7 +51,7 @@ setuptools.setup(
     license="Apache 2.0",
     zip_safe=False,
     classifiers=(
-        "Development Status :: 5 - Production/Stable",
+        "Development Status :: 4 - Beta",
         "Intended Audience :: Developers",
         "Natural Language :: English",
         "License :: OSI Approved :: Apache Software License",
