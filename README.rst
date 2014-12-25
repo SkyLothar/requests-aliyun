@@ -31,6 +31,7 @@ Play with Oss
 Full api document avaiable at: `OSS API`_
 
 .. code-block:: python
+
     >>> import requests
     >>> from aliyunauth import OssAuth
     >>> req = request.get(
