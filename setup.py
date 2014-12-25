@@ -21,7 +21,7 @@ if sys.argv[-1] == "publish":
 packages = ["aliyunauth"]
 
 
-with open("README.md", "r", "utf-8") as f:
+with open("README.rst", "r", "utf-8") as f:
     readme = f.read()
 
 with open("requirements.txt", "r", "utf-8") as f:
