@@ -36,3 +36,37 @@ def cal_md5(data):
             data = data.encode("utf8")
         md5sum.update(data)
     return md5sum.hexdigest()
+
+
+def to_bytes(some_str, encoding="utf8"):
+    if isinstance(some_str, requests.compat.str):
+        some_bytes = some_str.encode(encoding)
+    else:
+        some_bytes = some_str
+    return some_bytes
+
+
+def to_str(some_bytes, encoding="utf8"):
+    if isinstance(some_bytes, requests.compat.bytes):
+        some_str = some_bytes.decode(encoding)
+    else:
+        some_str = some_bytes
+    return some_str
+
+
+def percent_quote(query):
+    return requests.compat.quote(to_bytes(query), consts.PERCENT_SAFE)
+
+
+def percent_encode(params_tuple, sort=False):
+    if sort:
+        params = sorted(params_tuple, key=lambda x: x[0])
+    else:
+        params = list(params_tuple)
+
+    encoded = "&".join([
+        "{0}={1}".format(percent_quote(opt), percent_quote(val))
+        for opt, val in params
+        if val is not None
+    ])
+    return encoded

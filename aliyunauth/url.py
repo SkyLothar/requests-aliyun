@@ -9,21 +9,7 @@ if requests.compat.is_py2:
 elif requests.compat.is_py3:
     from urllib.parse import parse_qs
 
-
-def to_bytes(some_str, encoding="utf8"):
-    if isinstance(some_str, requests.compat.str):
-        some_bytes = some_str.encode(encoding)
-    else:
-        some_bytes = some_str
-    return some_bytes
-
-
-def to_str(some_bytes, encoding="utf8"):
-    if isinstance(some_bytes, requests.compat.bytes):
-        some_str = some_bytes.decode(encoding)
-    else:
-        some_str = some_bytes
-    return some_str
+from . import utils
 
 
 class URL(object):
@@ -38,7 +24,7 @@ class URL(object):
             {'foo': 'bar', 'baz': None}
 
         """
-        parsed_url = requests.compat.urlparse(to_str(url_str))
+        parsed_url = requests.compat.urlparse(utils.to_str(url_str))
         netloc_parts = parsed_url.netloc.split("@")
         if len(netloc_parts) == 1:
             username = password = None
@@ -81,7 +67,7 @@ class URL(object):
             self.netloc,
             self.uri
         ]
-        self._url = to_str("".join(parts))
+        self._url = utils.to_str("".join(parts))
         return self._url
 
     def __str__(self):
@@ -149,9 +135,9 @@ class URL(object):
         query = []
         for key, val in self._info["params"]:
             if val is None:
-                query.append(requests.compat.quote(to_bytes(key)))
+                query.append(requests.compat.quote(utils.to_bytes(key)))
             else:
-                param = {to_bytes(key): to_bytes(val)}
+                param = {utils.to_bytes(key): utils.to_bytes(val)}
                 query.append(requests.compat.urlencode(param))
         return "&".join(query)
 

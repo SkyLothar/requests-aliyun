@@ -4,7 +4,7 @@
 aliyunauth.oss
 ~~~~~~~~~~~~~~
 
-This module contains the authentication handlers for Ali OSS Service
+This module contains the authentication handlers for Ali Oss Service
 """
 
 import base64
