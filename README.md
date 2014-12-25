@@ -7,8 +7,8 @@ Aliyun using python-requests
 
 ## Aliyun authentication for the awesome requests!
 
-- [x] OSS (version: 2014-08-28)
-- [x] ECS (version: 2014-05-26)
+- [x] OSS (api-version: 2014-08-28)
+- [x] ECS (api-version: 2014-05-26)
 - [ ] RDS (work in process: eta 2014-12)
 
 
