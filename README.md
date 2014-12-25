@@ -6,9 +6,9 @@ Aliyun using python-requests
 
 Aliyun authentication for the awesome requests!
 
-- [x] OSS (wip)
+- [x] OSS
+- [x] ECS
 - [ ] RDS (2014-12)
-- [ ] ECS (2014-12)
 
 [travis-url]: https://travis-ci.org/SkyLothar/requests-aliyun
 [travis-image]: https://travis-ci.org/SkyLothar/requests-aliyun.svg?branch=master
