@@ -5,7 +5,11 @@ import sys
 
 from codecs import open
 
-import aliyunauth
+__version__ = "0.1.2"
+__author__ = "SkyLothar"
+__email__ = "allothar@gmail.com"
+__url__ = "http://github.com/skylothar/requests-aliyun"
+
 
 try:
     import setuptools
@@ -33,12 +37,12 @@ with open("tests/requirements.txt", "r", "utf-8") as f:
 
 setuptools.setup(
     name="requests-aliyun",
-    version=aliyunauth.__version__,
+    version=__version__,
     description="authentication for aliyun service",
     long_description=readme,
-    author=aliyunauth.__author__,
-    author_email=aliyunauth.__email__,
-    url=aliyunauth.__url__,
+    author=__author__,
+    author_email=__email__,
+    url=__url__,
     packages=packages,
     package_data={
         "": ["LICENSE"]

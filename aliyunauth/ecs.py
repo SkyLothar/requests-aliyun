@@ -26,6 +26,11 @@ logger = logging.getLogger(__name__)
 class EcsAuth(requests.auth.AuthBase):
     """Attach Aliyun Ecs Authentication to the given request
 
+    :param access_key: the access_key of your ecs account
+    :param secret_key: the secret_key of your ecs account
+    :param response_format: (optional) response format [`xml`/`json`(default)]
+    :param ram: (optional) resource access managment string (default None)
+
     Usage::
 
         >>> import requests
@@ -74,6 +79,12 @@ class EcsAuth(requests.auth.AuthBase):
         return payload
 
     def sign(self, method, params):
+        """Calculate signature with the SIG_METHOD(HMAC-SHA1)
+        Returns a base64 encoeded string of the hex signature
+
+        :param method: the http verb
+        :param params: the params needs calculate
+        """
         query_str = utils.percent_encode(params.items(), True)
 
         str_to_sign = "{0}&%2F&{1}".format(
@@ -88,10 +99,16 @@ class EcsAuth(requests.auth.AuthBase):
         return base64.b64encode(sig.digest())
 
     def __call__(self, req):
+        """Sign the request"""
         ecs_url = url.URL(req.url)
 
         params = self.set_common_params(ecs_url.params)
-        params[self.SIG] = self.sign(req.method, params)
+        logger.debug("compelete params are {0}".format(params))
+
+        signature = self.sign(req.method, params)
+        params[self.SIG] = signature
+
+        logger.debug("signature of this request is {0}".format(signature))
 
         ecs_url.params = params
         req.url = ecs_url.forge(key=lambda x: x[0])
