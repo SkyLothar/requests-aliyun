@@ -12,7 +12,7 @@ import aliyunauth
 
 
 CORRECT_URL = (
-    "http://ecs.example.bucket/"
+    "http://ecs.example.com/"
     "?AccessKeyId=access-key"
     "&Action=Test"
     "&Foo=bar"
@@ -30,7 +30,7 @@ class TestEcs(object):
     def setup(self):
         req_obj = requests.Request(
             "GET",
-            "http://ecs.example.bucket/",
+            "http://ecs.example.com/",
             params={"Action": "Test", "Foo": "bar", "Format": "json"},
             auth=aliyunauth.EcsAuth("access-key", "secret-key", "xml")
         )

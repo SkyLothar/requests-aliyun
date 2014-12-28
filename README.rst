@@ -55,5 +55,15 @@ Full api document avaiable at: `ECS API`_
     ... )
     <Response [200]>
 
+Play with RDS
+-------------
+Full api document avaiable at: `RDS API`_
+
+.. code-block:: python
+
+    >>> import requests
+    TODO
+
 .. _OSS API: http://imgs-storage.cdn.aliyuncs.com/help/oss/oss%20api%2020140828.pdf
 .. _ECS API: http://aliyunecs.oss.aliyuncs.com/ECS-API-Reference%202014-05-26.pdf
+.. _RDS API: http://imgs-storage.cdn.aliyuncs.com/help/rds/RDS-API-Reference.pdf
