@@ -23,7 +23,7 @@ Aliyun authentication for the awesome requests!
 
 - [x] OSS (api-version: 2014-08-28)
 - [x] ECS (api-version: 2014-05-26)
-- [ ] RDS (work in process: eta 2014-12)
+- [x] RDS (api-version: eta 2014-08-15)
 
 
 Play with Oss
@@ -62,7 +62,13 @@ Full api document avaiable at: `RDS API`_
 .. code-block:: python
 
     >>> import requests
-    TODO
+    >>> from aliyunauth import RdsAuth
+    >>> req = request.get(
+    ...     "https://rds.aliyuncs.com",
+    ...     params=dict(Action="DescribeDBInstances", RegionId="cn-hangzhou")
+    ...     auth=RdsAuth("access-key", "secret-key")
+    ... )
+    <Response [200]>
 
 .. _OSS API: http://imgs-storage.cdn.aliyuncs.com/help/oss/oss%20api%2020140828.pdf
 .. _ECS API: http://aliyunecs.oss.aliyuncs.com/ECS-API-Reference%202014-05-26.pdf
