@@ -6,6 +6,7 @@ __url__ = "http://github.com/skylothar/requests-aliyun"
 from .ecs import EcsAuth
 from .oss import OssAuth
 from .rds import RdsAuth
+from .slb import SlbAuth
 
 
-__all__ = ["EcsAuth", "OssAuth", "RdsAuth"]
+__all__ = ["EcsAuth", "OssAuth", "RdsAuth", "SlbAuth"]
