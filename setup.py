@@ -63,7 +63,6 @@ setuptools.setup(
         "Programming Language :: Python :: 2.7",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.4"
-
     ),
     setup_requires=["nose >= 1.0"],
     tests_require=tests_require,
