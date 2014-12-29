@@ -27,7 +27,33 @@ Aliyun authentication for the awesome requests!
 - [x] SLB (api-version: 2014-05-15)
 
 
-Play with Oss
+How to Use
+----------
+Just pass the auth object to requests
+
+.. code-block:: python
+
+    >>> import requests
+    >>> from aliyunauth import OssAuth
+    >>> req = requests.get(
+    ...     "http://example.com/path/to/file",
+    ...     auth=OssAuth("bucket-name", "access-key", "secret-key")
+    ... )
+    <Response [200]>
+
+Or set the auth attribute to the session object
+
+.. code-block:: python
+
+    >>> import requests
+    >>> from aliyunauth import OssAuth
+    >>> session = requests.session
+    >>> session.auth = OssAuth("bucket-name", "access-key", "secret-key")
+    >>> req = session.get("http://example.com/path/to/file")
+    <Response [200]>
+
+
+Play with OSS
 -------------
 Full api document avaiable at: `OSS API`_
 
@@ -35,7 +61,7 @@ Full api document avaiable at: `OSS API`_
 
     >>> import requests
     >>> from aliyunauth import OssAuth
-    >>> req = request.get(
+    >>> req = requests.get(
     ...     "http://bucket-name.oss-url.com/path/to/file",
     ...     auth=OssAuth("bucket-name", "access-key", "secret-key")
     ... )
@@ -49,7 +75,7 @@ Full api document avaiable at: `ECS API`_
 
     >>> import requests
     >>> from aliyunauth import EcsAuth
-    >>> req = request.get(
+    >>> req = requests.get(
     ...     "https://ecs.aliyuncs.com",
     ...     params=dict(Action="DescribeInstanceTypes"),
     ...     auth=EcsAuth("access-key", "secret-key")
@@ -64,7 +90,7 @@ Full api document avaiable at: `RDS API`_
 
     >>> import requests
     >>> from aliyunauth import RdsAuth
-    >>> req = request.get(
+    >>> req = requests.get(
     ...     "https://rds.aliyuncs.com",
     ...     params=dict(Action="DescribeDBInstances", RegionId="cn-hangzhou"),
     ...     auth=RdsAuth("access-key", "secret-key")
@@ -79,7 +105,7 @@ Full api document avaiable at: `SLB API`_
 
     >>> import requests
     >>> from aliyunauth import SlbAuth
-    >>> req = request.get(
+    >>> req = requests.get(
     ...     "https://slb.aliyuncs.com",
     ...     params=dict(Action="DescribeRegions"),
     ...     auth=SlbAuth("access-key", "secret-key")
