@@ -31,4 +31,4 @@ class RdsAuth(sign_ver_1_0.AuthBase):
 
     """
     SERVICE = "rds"
-    VERSION = "2014-08-26"
+    VERSION = "2014-08-15"

@@ -7,33 +7,33 @@ import requests
 import aliyunauth
 
 
-class TestEcs(object):
+class TestRds(object):
     CORRECT_URL = (
-        "http://ecs.example.com/"
+        "http://rds.example.com/"
         "?AccessKeyId=access-key"
         "&Action=Test"
         "&Foo=bar"
         "&Format=json"
-        "&Signature=Excuc%2FHHj8tbhnmwuxjiGwAf4d8%3D"
+        "&Signature=q4DMNXzkcAD6uzs7eTC62uZiX%2FE%3D"
         "&SignatureMethod=HMAC-SHA1"
         "&SignatureNonce=mock-nonce"
         "&SignatureVersion=1.0"
         "&TimeStamp=mock-date"
-        "&Version=2014-05-26"
+        "&Version=2014-08-15"
     )
 
     def setup(self):
         req_obj = requests.Request(
             "GET",
-            "http://ecs.example.com/",
+            "http://rds.example.com/",
             params={"Action": "Test", "Foo": "bar", "Format": "json"},
-            auth=aliyunauth.EcsAuth("access-key", "secret-key", "xml")
+            auth=aliyunauth.RdsAuth("access-key", "secret-key", "xml")
         )
         self.req = req_obj
 
     def test_attrs(self):
-        nose.tools.eq_(aliyunauth.EcsAuth.VERSION, "2014-05-26")
-        nose.tools.eq_(aliyunauth.EcsAuth.SERVICE, "ecs")
+        nose.tools.eq_(aliyunauth.RdsAuth.VERSION, "2014-08-15")
+        nose.tools.eq_(aliyunauth.RdsAuth.SERVICE, "rds")
 
     @mock.patch("time.strftime")
     @mock.patch("uuid.uuid4")

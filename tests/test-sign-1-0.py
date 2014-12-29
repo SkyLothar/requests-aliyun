@@ -32,12 +32,12 @@ class TestSign(object):
         "&Action=Test"
         "&Foo=bar"
         "&Format=json"
-        "&Signature=Excuc%2FHHj8tbhnmwuxjiGwAf4d8%3D"
+        "&Signature=frI1o4EdP9dEjlK6pK1URSr88pw%3D"
         "&SignatureMethod=HMAC-SHA1"
         "&SignatureNonce=mock-nonce"
         "&SignatureVersion=1.0"
         "&TimeStamp=mock-date"
-        "&Version=2014-05-26"
+        "&Version=test-version"
     )
 
     def setup(self):
