@@ -27,6 +27,14 @@ Aliyun authentication for the awesome requests!
 - [x] SLB (api-version: 2014-05-15)
 
 
+How to Install
+--------------
+Just
+
+.. code-block:: bash
+
+   pip install requests-aliyun
+
 How to Use
 ----------
 Just pass the auth object to requests
