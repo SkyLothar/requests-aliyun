@@ -14,7 +14,7 @@ class TestOss(object):
     def setup(self):
         req_obj = requests.Request(
             "GET",
-            "http://oss.example.bucket/test.sh?logging&acl=acl",
+            "http://oss.example.bucket/test.html?logging&acl=acl",
             data=b"some-data",
             params={"response-cache-control": "cache-control", "na": "na"},
             auth=aliyunauth.OssAuth("access-key", "secret-key", "bucket")
@@ -51,10 +51,10 @@ class TestOss(object):
 
         nose.tools.eq_(req.headers["date"], "mock-date")
         nose.tools.eq_(req.headers["content-md5"], TEST_BODY_MD5)
-        nose.tools.eq_(req.headers["content-type"], "application/x-sh")
+        nose.tools.eq_(req.headers["content-type"], "text/html")
         nose.tools.eq_(
             req.headers["authorization"],
-            "OSS secret-key:yRtNJKgS4WN97PhZO10Ug4uPp0Y="
+            "OSS secret-key:p++oOJbnVvBeGJujZyr57GMfsXE="
         )
 
     def test_header_with_expires(self):
@@ -68,10 +68,10 @@ class TestOss(object):
 
         nose.tools.eq_(
             req.url,
-            "http://oss.example.bucket/test.sh"
+            "http://oss.example.bucket/test.html"
             "?Expire=42"
             "&OSSAccessKeyId=access-key"
-            "&Signature=jos7RTGT%2FicIof02E1FZgeHpnZo%3D"
+            "&Signature=Ip10%2BESpuIoI0pZPKUc0avO941I%3D"
             "&acl=acl"
             "&logging"
             "&na=na"
@@ -92,10 +92,10 @@ class TestOss(object):
 
         nose.tools.eq_(
             req.url,
-            "http://oss.example.bucket/test.sh"
+            "http://oss.example.bucket/test.html"
             "?Expire=42"
             "&OSSAccessKeyId=access-key"
-            "&Signature=jos7RTGT%2FicIof02E1FZgeHpnZo%3D"
+            "&Signature=Ip10%2BESpuIoI0pZPKUc0avO941I%3D"
             "&acl=acl"
             "&logging"
             "&na=na"
