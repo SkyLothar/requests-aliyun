@@ -122,7 +122,7 @@ class OssAuth(requests.auth.AuthBase):
         if req.body is not None:
             content_md5 = req.headers.get("content-md5", "")
             if not content_md5 and self._allow_empty_md5 is False:
-                content_md5 = utils.cal_md5(req.body)
+                content_md5 = utils.cal_b64md5(req.body)
         else:
             content_md5 = ""
         req.headers["content-md5"] = content_md5

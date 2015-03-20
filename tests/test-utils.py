@@ -1,5 +1,6 @@
 # -*- coding: utf8 -*-
 
+import base64
 import hashlib
 import io
 
@@ -10,32 +11,31 @@ import aliyunauth.utils
 import aliyunauth.consts
 
 
-def test_cal_md5():
+def test_cal_b64md5():
     s_data = b"foo"
     l_data = b"bar" * aliyunauth.consts.MD5_CHUNK_SIZE
     # normal data, None
-    nose.tools.eq_(aliyunauth.utils.cal_md5(None), None)
+    nose.tools.eq_(aliyunauth.utils.cal_b64md5(None), None)
+
+    def b64md5(data):
+        return base64.b64encode(hashlib.md5(data).digest()).decode("utf8")
+
+    # normal data, small size, bytes
+    nose.tools.eq_(aliyunauth.utils.cal_b64md5(s_data), b64md5(s_data))
 
     # normal data, small size, bytes
     nose.tools.eq_(
-        aliyunauth.utils.cal_md5(s_data),
-        hashlib.md5(s_data).hexdigest()
-    )
-    # normal data, small size, bytes
-    nose.tools.eq_(
-        aliyunauth.utils.cal_md5(s_data.decode("utf8")),
-        hashlib.md5(s_data).hexdigest()
+        aliyunauth.utils.cal_b64md5(s_data.decode("utf8")), b64md5(s_data)
     )
 
     # io-like, big size, bytes
     nose.tools.eq_(
-        aliyunauth.utils.cal_md5(io.BytesIO(l_data)),
-        hashlib.md5(l_data).hexdigest()
+        aliyunauth.utils.cal_b64md5(io.BytesIO(l_data)), b64md5(l_data)
     )
     # io-like, big size, str
     nose.tools.eq_(
-        aliyunauth.utils.cal_md5(io.StringIO(l_data.decode("utf8"))),
-        hashlib.md5(l_data).hexdigest()
+        aliyunauth.utils.cal_b64md5(io.StringIO(l_data.decode("utf8"))),
+        b64md5(l_data)
     )
 
 

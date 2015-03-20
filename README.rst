@@ -55,7 +55,7 @@ Or set the auth attribute to the session object
 
     >>> import requests
     >>> from aliyunauth import OssAuth
-    >>> session = requests.session
+    >>> session = requests.session()
     >>> session.auth = OssAuth("bucket-name", "access-key", "secret-key")
     >>> req = session.get("http://example.com/path/to/file")
     <Response [200]>

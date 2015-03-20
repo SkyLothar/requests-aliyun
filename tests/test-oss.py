@@ -7,7 +7,7 @@ import requests
 import aliyunauth
 
 
-TEST_BODY_MD5 = "31568d94c1ff0505d173ca6b5cc3cf49"
+TEST_BODY_MD5 = "MVaNlMH/BQXRc8prXMPPSQ=="
 
 
 class TestOss(object):
@@ -30,6 +30,7 @@ class TestOss(object):
             "secret-key",
             allow_empty_md5=True
         )
+        self.req.data = None
         req = self.req.prepare()
 
         nose.tools.eq_(req.headers["date"], "date")
@@ -50,10 +51,10 @@ class TestOss(object):
 
         nose.tools.eq_(req.headers["date"], "mock-date")
         nose.tools.eq_(req.headers["content-md5"], TEST_BODY_MD5)
-        nose.tools.eq_(req.headers["content-type"], "text/x-sh")
+        nose.tools.eq_(req.headers["content-type"], "application/x-sh")
         nose.tools.eq_(
             req.headers["authorization"],
-            "OSS secret-key:oQ8oI+PxLugJnUfjmYDHufqkVUc="
+            "OSS secret-key:yRtNJKgS4WN97PhZO10Ug4uPp0Y="
         )
 
     def test_header_with_expires(self):
@@ -67,11 +68,14 @@ class TestOss(object):
 
         nose.tools.eq_(
             req.url,
-            "http://oss.example.bucket/test.sh?"
-            "Expire=42"
+            "http://oss.example.bucket/test.sh"
+            "?Expire=42"
             "&OSSAccessKeyId=access-key"
-            "&Signature=DxN01UTNHFf0qa8MLx4jgu%2FGpBo%3D"
-            "&acl=acl&logging&na=na&response-cache-control=cache-control"
+            "&Signature=jos7RTGT%2FicIof02E1FZgeHpnZo%3D"
+            "&acl=acl"
+            "&logging"
+            "&na=na"
+            "&response-cache-control=cache-control"
         )
 
     @mock.patch("time.time")
@@ -88,9 +92,12 @@ class TestOss(object):
 
         nose.tools.eq_(
             req.url,
-            "http://oss.example.bucket/test.sh?"
-            "Expire=42"
+            "http://oss.example.bucket/test.sh"
+            "?Expire=42"
             "&OSSAccessKeyId=access-key"
-            "&Signature=DxN01UTNHFf0qa8MLx4jgu%2FGpBo%3D"
-            "&acl=acl&logging&na=na&response-cache-control=cache-control"
+            "&Signature=jos7RTGT%2FicIof02E1FZgeHpnZo%3D"
+            "&acl=acl"
+            "&logging"
+            "&na=na"
+            "&response-cache-control=cache-control"
         )

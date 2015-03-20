@@ -1,5 +1,6 @@
 # -*- coding:utf8 -*-
 
+import base64
 import hashlib
 import os
 
@@ -8,15 +9,15 @@ import requests
 from . import consts
 
 
-def cal_md5(data):
+def cal_b64md5(data):
     """
 
     :param data: cal md5 checksum for this piece data
 
     Usage::
 
-        >>> cal_md5(io.BytesIO(b"hello world"))
-        5eb63bbbe01eeed093cb22bb8f5acdc3
+        >>> cal_b64md5(io.BytesIO(b"hello world"))
+        XrY7u+Ae7tCTyyK7j1rNww==
 
     """
     if data is None:
@@ -35,7 +36,7 @@ def cal_md5(data):
         if isinstance(data, requests.compat.str):
             data = data.encode("utf8")
         md5sum.update(data)
-    return md5sum.hexdigest()
+    return base64.b64encode(md5sum.digest()).decode("utf8")
 
 
 def to_bytes(some_str, encoding="utf8"):
