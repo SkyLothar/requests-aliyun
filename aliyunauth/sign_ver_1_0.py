@@ -38,6 +38,7 @@ class AuthBase(requests.auth.AuthBase):
     SIG_METHOD = "HMAC-SHA1"
     SIG_VERSION = "1.0"
     TIME_FMT = "%Y-%m-%dT%XZ"
+    PARAMS_MAP = {}
 
     def __init__(
         self,
@@ -62,17 +63,21 @@ class AuthBase(requests.auth.AuthBase):
         if self.SIG in payload:
             del payload[self.SIG]
         payload.setdefault("Format", self._format)
-        payload["Version"] = self.VERSION
-        payload["AccessKeyId"] = self._access_key
-        payload["TimeStamp"] = time.strftime(self.TIME_FMT, time.gmtime())
-        payload["SignatureMethod"] = self.SIG_METHOD
-        payload["SignatureVersion"] = self.SIG_VERSION
-        payload["SignatureNonce"] = uuid.uuid4().hex
+        payload[self.getkey("Version")] = self.VERSION
+        payload[self.getkey("AccessKeyId")] = self._access_key
+        payload[self.getkey("TimeStamp")] = \
+            time.strftime(self.TIME_FMT, time.gmtime())
+        payload[self.getkey("SignatureMethod")] = self.SIG_METHOD
+        payload[self.getkey("SignatureVersion")] = self.SIG_VERSION
+        payload[self.getkey("SignatureNonce")] = uuid.uuid4().hex
 
         if self._ram is not None:
             payload["ResourceOwnerAccount"] = self._ram
 
         return payload
+
+    def getkey(self, key):
+        return self.PARAMS_MAP.get(key, key)
 
     def sign(self, method, params):
         """Calculate signature with the SIG_METHOD(HMAC-SHA1)

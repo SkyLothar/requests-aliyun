@@ -7,6 +7,7 @@ from .ecs import EcsAuth
 from .oss import OssAuth
 from .rds import RdsAuth
 from .slb import SlbAuth
+from .cms import CmsAuth
 
 
-__all__ = ["EcsAuth", "OssAuth", "RdsAuth", "SlbAuth"]
+__all__ = ["EcsAuth", "OssAuth", "RdsAuth", "SlbAuth", "CmsAuth"]

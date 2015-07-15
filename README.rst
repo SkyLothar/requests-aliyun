@@ -1,6 +1,10 @@
 Aliyun using python-requests
 ============================
 
+Version
+-------
+v0.2.3
+
 .. image:: https://travis-ci.org/SkyLothar/requests-aliyun.svg?branch=master
     :target: https://travis-ci.org/SkyLothar/requests-aliyun
 
@@ -25,6 +29,7 @@ Aliyun authentication for the awesome requests!
 - [x] ECS (api-version: 2014-05-26)
 - [x] RDS (api-version: 2014-08-15)
 - [x] SLB (api-version: 2014-05-15)
+- [x] CMS (api-version: 2015-04-20)
 
 
 How to Install
@@ -109,14 +114,18 @@ Play with SLB
 -------------
 Full api document avaiable at: `SLB API`_
 
+Play with CMS
+-------------
+Full api document avaiable at: `CMS API`_
+
 .. code-block:: python
 
     >>> import requests
-    >>> from aliyunauth import SlbAuth
+    >>> from aliyunauth import CmsAuth
     >>> req = requests.get(
-    ...     "https://slb.aliyuncs.com",
-    ...     params=dict(Action="DescribeRegions"),
-    ...     auth=SlbAuth("access-key", "secret-key")
+    ...     "metrics.aliyuncs.com",
+    ...     params=dict(Action="DescribeMetricDatum"),
+    ...     auth=CmsAuth("access-key", "secret-key")
     ... )
     <Response [200]>
 
@@ -124,3 +133,4 @@ Full api document avaiable at: `SLB API`_
 .. _ECS API: http://aliyunecs.oss.aliyuncs.com/ECS-API-Reference%202014-05-26.pdf
 .. _RDS API: http://imgs-storage.cdn.aliyuncs.com/help/rds/RDS-API-Reference.pdf
 .. _SLB API: http://imgs-storage.cdn.aliyuncs.com/help/slb/SLB-API-Reference_2014-05-15.pdf
+.. _CMS API: http://docs.aliyun.com/?spm=5176.383338.201.76.2xkgjU#/pub/cms/References/API_Reference
