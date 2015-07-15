@@ -33,7 +33,7 @@ class TestCms(object):
 
     def test_attrs(self):
         nose.tools.eq_(aliyunauth.CmsAuth.VERSION, "2015-04-20")
-        nose.tools.eq_(aliyunauth.CmsAuth.SERVICE, "smb")
+        nose.tools.eq_(aliyunauth.CmsAuth.SERVICE, "cms")
 
     @mock.patch("time.strftime")
     @mock.patch("uuid.uuid4")
