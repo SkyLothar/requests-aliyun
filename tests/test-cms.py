@@ -7,9 +7,9 @@ import requests
 import aliyunauth
 
 
-class TestSlb(object):
+class TestCms(object):
     CORRECT_URL = (
-        "http://slb.example.com/"
+        "http://cms.example.com/"
         "?AccessKeyId=access-key"
         "&Action=Test"
         "&Foo=bar"
@@ -25,15 +25,15 @@ class TestSlb(object):
     def setup(self):
         req_obj = requests.Request(
             "GET",
-            "http://slb.example.com/",
+            "http://cms.example.com/",
             params={"Action": "Test", "Foo": "bar"},
-            auth=aliyunauth.SlbAuth("access-key", "secret-key", "xml")
+            auth=aliyunauth.CmsAuth("access-key", "secret-key", "xml")
         )
         self.req = req_obj
 
     def test_attrs(self):
-        nose.tools.eq_(aliyunauth.SlbAuth.VERSION, "2015-04-20")
-        nose.tools.eq_(aliyunauth.SlbAuth.SERVICE, "smb")
+        nose.tools.eq_(aliyunauth.CmsAuth.VERSION, "2015-04-20")
+        nose.tools.eq_(aliyunauth.CmsAuth.SERVICE, "smb")
 
     @mock.patch("time.strftime")
     @mock.patch("uuid.uuid4")
