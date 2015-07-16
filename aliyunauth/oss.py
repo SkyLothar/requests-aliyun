@@ -75,12 +75,9 @@ class OssAuth(requests.auth.AuthBase):
         allow_empty_md5=False
     ):
         self._bucket = bucket
-        self._access_key = access_key
+        self._access_key = utils.to_str(access_key)
+        self._secret_key = utils.to_bytes(secret_key)
 
-        if isinstance(secret_key, requests.compat.str):
-            secret_key = secret_key.encode("utf8")
-
-        self._secret_key = secret_key
         self._allow_empty_md5 = allow_empty_md5
 
         if isinstance(expires, (int, float)):
