@@ -72,7 +72,7 @@ def test_percent_quote():
 
 def test_percent_encode():
     nose.tools.eq_(
-        aliyunauth.utils.percent_encode([("福 棒", "foo+bar")]),
+        aliyunauth.utils.percent_encode([("福 棒", "foo+bar"), ("none", None)]),
         "%E7%A6%8F%20%E6%A3%92=foo%2Bbar"
     )
     nose.tools.eq_(
