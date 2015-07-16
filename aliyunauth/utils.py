@@ -27,16 +27,12 @@ def cal_b64md5(data):
         # file-like object or IO-like object
         data_piece = data.read(consts.MD5_CHUNK_SIZE)
         while data_piece:
-            if isinstance(data_piece, requests.compat.str):
-                data_piece = data_piece.encode("utf8")
-            md5sum.update(data_piece)
+            md5sum.update(to_bytes(data_piece))
             data_piece = data.read(consts.MD5_CHUNK_SIZE)
         data.seek(0, os.SEEK_SET)
     else:
-        if isinstance(data, requests.compat.str):
-            data = data.encode("utf8")
-        md5sum.update(data)
-    return base64.b64encode(md5sum.digest()).decode("utf8")
+        md5sum.update(to_bytes(data))
+    return to_str(base64.b64encode(md5sum.digest()))
 
 
 def to_bytes(some_str, encoding="utf8"):
