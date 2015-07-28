@@ -111,17 +111,18 @@ class OssAuth(requests.auth.AuthBase):
                 time.strftime(self.TIME_FMT, time.gmtime())
             )
         else:
+            req.headers["content-type"] = ""
             req.headers["date"] = self._expires
 
         logger.info("set date to: {0}".format(req.headers["date"]))
 
         # set content-md5
-        if req.body is not None:
+        if req.body is None:
+            content_md5 = ""
+        else:
             content_md5 = req.headers.get("content-md5", "")
             if not content_md5 and self._allow_empty_md5 is False:
                 content_md5 = utils.cal_b64md5(req.body)
-        else:
-            content_md5 = ""
         req.headers["content-md5"] = content_md5
         logger.info("content-md5 to: [{0}]".format(content_md5))
 
@@ -186,7 +187,7 @@ class OssAuth(requests.auth.AuthBase):
             # auth with url
             oss_url = url.URL(req.url)
             oss_url.append_params(dict(
-                Expire=self._expires,
+                Expires=self._expires,
                 OSSAccessKeyId=self._access_key,
                 Signature=signature
             ))

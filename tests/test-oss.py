@@ -57,7 +57,7 @@ class TestOss(object):
             "OSS secret-key:p++oOJbnVvBeGJujZyr57GMfsXE="
         )
 
-    def test_header_with_expires(self):
+    def test_url_with_expires(self):
         self.req.auth = aliyunauth.OssAuth(
             "bucket",
             "access-key",
@@ -69,9 +69,9 @@ class TestOss(object):
         nose.tools.eq_(
             req.url,
             "http://oss.example.bucket/test.html"
-            "?Expire=42"
+            "?Expires=42"
             "&OSSAccessKeyId=access-key"
-            "&Signature=Ip10%2BESpuIoI0pZPKUc0avO941I%3D"
+            "&Signature=h0vCwawE963u0Cz7Khyt6X2ojgM%3D"
             "&acl=acl"
             "&logging"
             "&na=na"
@@ -79,7 +79,7 @@ class TestOss(object):
         )
 
     @mock.patch("time.time")
-    def test_header_with_expires_in(self, mock_time):
+    def test_url_with_expires_in(self, mock_time):
         mock_time.return_value = 20
 
         self.req.auth = aliyunauth.OssAuth(
@@ -93,9 +93,9 @@ class TestOss(object):
         nose.tools.eq_(
             req.url,
             "http://oss.example.bucket/test.html"
-            "?Expire=42"
+            "?Expires=42"
             "&OSSAccessKeyId=access-key"
-            "&Signature=Ip10%2BESpuIoI0pZPKUc0avO941I%3D"
+            "&Signature=h0vCwawE963u0Cz7Khyt6X2ojgM%3D"
             "&acl=acl"
             "&logging"
             "&na=na"
