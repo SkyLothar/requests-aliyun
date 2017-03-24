@@ -151,6 +151,8 @@ class OssAuth(requests.auth.AuthBase):
         }
 
         oss_url.forge(key=lambda x: x[0])
+        if canonicalized_headers:
+            canonicalized_headers = '{0}\n'.format(canonicalized_headers)
         canonicalized_str = "{0}/{1}".format(
             canonicalized_headers, os.path.join(self._bucket + oss_url.uri)
         )
