@@ -5,7 +5,7 @@ import sys
 
 from codecs import open
 
-__version__ = "0.2.4"
+__version__ = "0.2.5"
 __author__ = "SkyLothar"
 __email__ = "allothar@gmail.com"
 __url__ = "http://github.com/skylothar/requests-aliyun"
