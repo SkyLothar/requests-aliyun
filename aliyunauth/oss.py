@@ -135,11 +135,11 @@ class OssAuth(requests.auth.AuthBase):
         oss_url = url.URL(req.url)
 
         oss_headers = [
-            "{0}:{1}".format(key, val)
+            "{0}:{1}\n".format(key, val)
             for key, val in req.headers.lower_items()
             if key.startswith(self.X_OSS_PREFIX)
         ]
-        canonicalized_headers = "\n".join(sorted(oss_headers))
+        canonicalized_headers = "".join(sorted(oss_headers))
         logger.debug(
             "canonicalized header : [{0}]".format(canonicalized_headers)
         )
@@ -151,8 +151,6 @@ class OssAuth(requests.auth.AuthBase):
         }
 
         oss_url.forge(key=lambda x: x[0])
-        if canonicalized_headers:
-            canonicalized_headers = '{0}\n'.format(canonicalized_headers)
         canonicalized_str = "{0}/{1}".format(
             canonicalized_headers, os.path.join(self._bucket + oss_url.uri)
         )
