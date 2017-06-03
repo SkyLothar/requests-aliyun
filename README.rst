@@ -3,7 +3,7 @@ Aliyun using python-requests
 
 Version
 -------
-v0.2.3
+v0.3.0
 
 .. image:: https://travis-ci.org/SkyLothar/requests-aliyun.svg?branch=master
     :target: https://travis-ci.org/SkyLothar/requests-aliyun
