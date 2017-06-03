@@ -12,7 +12,7 @@ import hashlib
 import hmac
 import logging
 import mimetypes
-import os
+import re
 import time
 
 import requests
@@ -28,6 +28,7 @@ class OssAuth(requests.auth.AuthBase):
     """Attach Aliyun Oss Authentication to the given request
 
     :param bucket: the bucket name of this request
+        if bucket is `None`, a bucket name will be detected with oss url
     :param access_key: the access_key of your oss account
     :param secret_key: the secret_key of your oss account
     :param expires: (optional) the request will expire after the given epoch
@@ -47,6 +48,11 @@ class OssAuth(requests.auth.AuthBase):
         <Response [200]>
 
     """
+
+    BUCKET_NAME_RE = re.compile(
+        r"^(?P<bucket_name>[a-z0-9\-]+\.)?oss-([a-z0-9\-]+)?\.aliyuncs\.com$",
+        flags=re.IGNORECASE
+    )
     X_OSS_PREFIX = "x-oss-"
     DEFAULT_TYPE = "application/octstream"
     TIME_FMT = "%a, %d %b %Y %H:%M:%S GMT"
@@ -86,6 +92,15 @@ class OssAuth(requests.auth.AuthBase):
             self._expires = str(int(time.time() + expires_in))
         else:
             self._expires = None
+
+    def get_bucket(self, url):
+        match = self.BUCKET_NAME_RE.match(url)
+        bucket_name = self._bucket
+        if match:
+            bucket_name = match.groupdict()["bucket_name"].rstrip(".")
+        if bucket_name is None:
+            raise ValueError("bucket name not set: {0}".format(url))
+        return bucket_name
 
     def set_more_headers(self, req, extra_headers=None):
         """Set content-type, content-md5, date to the request
@@ -151,8 +166,10 @@ class OssAuth(requests.auth.AuthBase):
         }
 
         oss_url.forge(key=lambda x: x[0])
-        canonicalized_str = "{0}/{1}".format(
-            canonicalized_headers, os.path.join(self._bucket + oss_url.uri)
+        canonicalized_str = "{0}/{1}{2}".format(
+            canonicalized_headers,
+            self.get_bucket(oss_url.host),
+            oss_url.uri
         )
 
         str_to_sign = "\n".join([

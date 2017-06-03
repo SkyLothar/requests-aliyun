@@ -1,5 +1,5 @@
 import requests
-
+from . import utils
 
 __all__ = ["URL"]
 
@@ -8,8 +8,6 @@ if requests.compat.is_py2:
     from urlparse import parse_qs
 elif requests.compat.is_py3:
     from urllib.parse import parse_qs
-
-from . import utils
 
 
 class URL(object):

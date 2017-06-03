@@ -17,15 +17,15 @@ class TestOss(object):
             "http://oss.example.bucket/test.html?logging&acl=acl",
             data=b"some-data",
             params={"response-cache-control": "cache-control", "na": "na"},
-            auth=aliyunauth.OssAuth("access-key", "secret-key", "bucket")
+            auth=aliyunauth.OssAuth("bucket", "access-key", "secret-key")
         )
         self.req = req_obj
 
     def test_no_md5(self):
         self.req.headers["date"] = "date"
-        self.req.url = "http://oss.some.bucket/"
+        self.req.url = "http://bucket.oss-aliyun.aliyuncs.com/"
         self.req.auth = aliyunauth.OssAuth(
-            "bucket",
+            None,
             "access-key",
             "secret-key",
             allow_empty_md5=True
@@ -54,7 +54,7 @@ class TestOss(object):
         nose.tools.eq_(req.headers["content-type"], "text/html")
         nose.tools.eq_(
             req.headers["authorization"],
-            "OSS secret-key:p++oOJbnVvBeGJujZyr57GMfsXE="
+            "OSS access-key:XO4EQz0TH+e1dFs5lES8XJ7Fa9w="
         )
 
     def test_url_with_expires(self):
