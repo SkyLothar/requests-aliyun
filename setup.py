@@ -5,7 +5,7 @@ import sys
 
 from codecs import open
 
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 __author__ = "SkyLothar"
 __email__ = "allothar@gmail.com"
 __url__ = "http://github.com/skylothar/requests-aliyun"
@@ -64,8 +64,5 @@ setuptools.setup(
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.3",
         "Programming Language :: Python :: 3.4"
-    ],
-    setup_requires=["nose >= 1.0"],
-    tests_require=tests_require,
-    test_suite="nose.collector"
+    ]
 )
